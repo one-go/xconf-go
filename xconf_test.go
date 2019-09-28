@@ -3,6 +3,7 @@ package xconf
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"testing"
 )
 
@@ -35,7 +36,7 @@ type Example struct {
 	} `json:"batters"`
 }
 
-func TestXconf(t *testing.T) {
+func TestCurd(t *testing.T) {
 	xconf := New(&Options{
 		Endpoints: []string{"test.riodev.oa.com:2379"},
 		Username:  "",
@@ -68,4 +69,44 @@ func TestXconf(t *testing.T) {
 	if err = xconf.Delete(context.TODO(), f.Group, f.Name); err != nil {
 		t.Errorf("delete file failed")
 	}
+}
+
+func TestWatch(t *testing.T) {
+	xconf := New(&Options{
+		Endpoints: []string{"test.riodev.oa.com:2379"},
+		Username:  "",
+		Password:  "",
+	})
+	f := File{
+		Group:   "xconf",
+		Name:    "xconftest-test.json",
+		Content: jsonExample,
+		Meta:    &Metadata{},
+	}
+
+	if err := xconf.Put(context.TODO(), f); err != nil {
+		t.Fatal(err)
+	}
+
+	ch := make(chan File)
+
+	xconf.Watch(context.TODO(), f.Group, f.Name, func(file File) error {
+		ch <- file
+		return nil
+	})
+
+	// update
+	example := new(Example)
+	if err := json.Unmarshal(f.Content, example); err != nil {
+		t.Fatal(err)
+	}
+	example.Name = "Cake2"
+	f.Content, _ = json.Marshal(example)
+	xconf.Put(context.TODO(), f)
+	newfile := <-ch
+	if bytes.Compare(newfile.Content, f.Content) != 0 {
+		t.Errorf("compare file content failed")
+	}
+
+	// update with gray
 }
