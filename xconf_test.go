@@ -43,30 +43,25 @@ func TestCurd(t *testing.T) {
 		Password:  "",
 	})
 	f := File{
-		Group:   "xconf",
+		Group:   "xconf-sdk",
 		Name:    "xconftest-test.json",
 		Content: jsonExample,
 	}
 
-	if err := xconf.Put(context.TODO(), f); err != nil {
-		t.Fatal(err)
+	if err := xconf.CreateFile(context.TODO(), &f); err != nil {
+		t.Fatal("create config", err)
 	}
 
-	xconf.Watch(context.TODO(), f.Group, f.Name, func(file File) error {
-		t.Log(file)
-		return nil
-	})
-
-	content, err := xconf.Get(context.TODO(), f.Group, f.Name)
+	content, err := xconf.GetConfig(context.TODO(), f.Group, f.Name)
 	if err != nil {
-		t.Fatal(err)
+		t.Fatal("get config", err)
 	}
 
 	if bytes.Compare(content, f.Content) != 0 {
 		t.Errorf("compare file content failed")
 	}
 
-	if err = xconf.Delete(context.TODO(), f.Group, f.Name); err != nil {
+	if err = xconf.DeleteFile(context.TODO(), f.Group, f.Name); err != nil {
 		t.Errorf("delete file failed")
 	}
 }
@@ -77,21 +72,21 @@ func TestWatch(t *testing.T) {
 		Username:  "",
 		Password:  "",
 	})
-	f := File{
-		Group:   "xconf",
-		Name:    "xconftest-test.json",
+	f := &File{
+		Group:   "xconf-sdk",
+		Name:    "xconftest-test2.json",
 		Content: jsonExample,
-		Meta:    &Metadata{},
+		Meta:    Metadata{},
 	}
 
-	if err := xconf.Put(context.TODO(), f); err != nil {
+	if err := xconf.CreateFile(context.TODO(), f); err != nil {
 		t.Fatal(err)
 	}
 
 	ch := make(chan File)
 
-	xconf.Watch(context.TODO(), f.Group, f.Name, func(file File) error {
-		ch <- file
+	xconf.Watch(context.TODO(), f.Group, f.Name, func(file *File) error {
+		ch <- *file
 		return nil
 	})
 
@@ -102,11 +97,11 @@ func TestWatch(t *testing.T) {
 	}
 	example.Name = "Cake2"
 	f.Content, _ = json.Marshal(example)
-	xconf.Put(context.TODO(), f)
+
+	xconf.UpdateFile(context.TODO(), f)
+
 	newfile := <-ch
 	if bytes.Compare(newfile.Content, f.Content) != 0 {
-		t.Errorf("compare file content failed")
+		t.Errorf("compare file content failed version=%d", f.Version)
 	}
-
-	// update with gray
 }
