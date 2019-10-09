@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"log"
 	"testing"
 )
 
@@ -67,10 +68,17 @@ func TestCurd(t *testing.T) {
 }
 
 func TestWatch(t *testing.T) {
-	xconf := New(&Options{
+	client1 := New(&Options{
 		Endpoints: []string{"test.riodev.oa.com:2379"},
 		Username:  "",
 		Password:  "",
+		ID:        "client1",
+	})
+	client2 := New(&Options{
+		Endpoints: []string{"test.riodev.oa.com:2379"},
+		Username:  "",
+		Password:  "",
+		ID:        "client2",
 	})
 	f := &File{
 		Group:   "xconf-sdk",
@@ -79,28 +87,49 @@ func TestWatch(t *testing.T) {
 		Meta:    Metadata{},
 	}
 
-	if err := xconf.CreateFile(context.TODO(), f); err != nil {
+	if err := client1.CreateFile(context.TODO(), f); err != nil {
 		t.Fatal(err)
 	}
 
 	ch := make(chan File)
 
-	xconf.Watch(context.TODO(), f.Group, f.Name, func(file *File) error {
+	client1.Watch(context.TODO(), f.Group, f.Name, func(file *File) error {
 		ch <- *file
+		log.Printf("client1 watch")
+		return nil
+	})
+	client2.Watch(context.TODO(), f.Group, f.Name, func(file *File) error {
+		ch <- *file
+		log.Printf("client2 watch")
 		return nil
 	})
 
-	// update
+	// update with gray
 	example := new(Example)
 	if err := json.Unmarshal(f.Content, example); err != nil {
 		t.Fatal(err)
 	}
 	example.Name = "Cake2"
 	f.Content, _ = json.Marshal(example)
+	f.Meta.Gray = "client2"
 
-	xconf.UpdateFile(context.TODO(), f)
+	client1.UpdateFile(context.TODO(), f)
 
 	newfile := <-ch
+	if bytes.Compare(newfile.Content, f.Content) != 0 {
+		t.Errorf("compare file content failed version=%d", f.Version)
+	}
+
+	// update all
+	f.Meta.Gray = ""
+	client1.UpdateFile(context.TODO(), f)
+
+	newfile = <-ch
+	if bytes.Compare(newfile.Content, f.Content) != 0 {
+		t.Errorf("compare file content failed version=%d", f.Version)
+	}
+
+	newfile = <-ch
 	if bytes.Compare(newfile.Content, f.Content) != 0 {
 		t.Errorf("compare file content failed version=%d", f.Version)
 	}
