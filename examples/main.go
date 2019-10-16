@@ -2,8 +2,8 @@ package main
 
 // example
 
-// Usually, you just copy 'example/config.go' and change the 'Config' struct define.
-// After 'XconfInit', you can use Xconf() got the 'Config'.
+// Usually, you just copy 'example/config.go' and change the 'XconfConfig' struct define.
+// After 'XconfInit', you can use Xconf() got the Config object.
 
 import (
 	"log"
@@ -12,10 +12,10 @@ import (
 )
 
 func main() {
-	group := "xconf"
-	name := "xconftest-test.json"
+	group := "xconf-sdk"
+	name := "xconftest-test2.json"
 	if err := XconfInit(&xconf.Options{
-		Endpoints: []string{"127.0.0.1:2379"},
+		Endpoints: []string{"test.riodev.oa.com:2379"},
 		Username:  "",
 		Password:  "",
 		ID:        "", // use os.Hostname() when ID empty

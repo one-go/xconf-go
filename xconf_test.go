@@ -33,7 +33,9 @@ type Example struct {
 	Name    string  `json:"name"`
 	PPU     float32 `json:"ppu"`
 	Batters struct {
-		Batter []Batter `json:"batter"`
+		Batter []struct {
+			Type string `json:"type"`
+		} `json:"batter"`
 	} `json:"batters"`
 }
 

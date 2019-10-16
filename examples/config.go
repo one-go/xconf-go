@@ -9,12 +9,12 @@ import (
 
 var (
 	xconfClient    *xconf.Xconf
-	xconfConfigs   [2]*Config
+	xconfConfigs   [2]*XconfConfig
 	xconfConfigIdx int
 )
 
 func XconfLoad(content []byte) error {
-	c := new(Config)
+	c := new(XconfConfig)
 	idx := (xconfConfigIdx + 1) % len(xconfConfigs)
 	if err := json.Unmarshal(content, c); err != nil {
 		return err
@@ -24,7 +24,7 @@ func XconfLoad(content []byte) error {
 	return nil
 }
 
-func Xconf() *Config {
+func Xconf() *XconfConfig {
 	return xconfConfigs[xconfConfigIdx]
 }
 
@@ -40,13 +40,16 @@ func XconfInit(opt *xconf.Options, group, name string) error {
 	return XconfLoad(content)
 }
 
-// Config which
-type Config struct {
+// XconfConfig 
+// Change the struct for you app config
+type XconfConfig struct {
 	ID      string  `json:"id"`
 	Type    string  `json:"type"`
 	Name    string  `json:"name"`
 	PPU     float32 `json:"ppu"`
 	Batters struct {
-		Batter []string `json:"batter"`
+		Batter []struct {
+			Type string `json:"type"`
+		} `json:"batter"`
 	} `json:"batters"`
 }
