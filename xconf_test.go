@@ -106,7 +106,7 @@ func TestWatch(t *testing.T) {
 		return nil
 	})
 
-	// update with cancay
+	// update with canary
 	example := new(Example)
 	if err := json.Unmarshal(f.Content, example); err != nil {
 		t.Fatal(err)
