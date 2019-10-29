@@ -23,6 +23,8 @@ var jsonExample = []byte(`{
     }
 }`)
 
+var etcdHost = "etcdhost:2379"
+
 type Batter struct {
 	Type string `json:"type"`
 }
@@ -41,7 +43,7 @@ type Example struct {
 
 func TestCurd(t *testing.T) {
 	xconf := New(&Options{
-		Endpoints: []string{"127.0.0.1:2379"},
+		Endpoints: []string{etcdHost},
 		Username:  "",
 		Password:  "",
 	})
@@ -71,13 +73,13 @@ func TestCurd(t *testing.T) {
 
 func TestWatch(t *testing.T) {
 	client1 := New(&Options{
-		Endpoints: []string{"127.0.0.1:2379"},
+		Endpoints: []string{etcdHost},
 		Username:  "",
 		Password:  "",
 		ID:        "client1",
 	})
 	client2 := New(&Options{
-		Endpoints: []string{"127.0.0.1:2379"},
+		Endpoints: []string{etcdHost},
 		Username:  "",
 		Password:  "",
 		ID:        "client2",
