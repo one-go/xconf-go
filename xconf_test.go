@@ -41,7 +41,7 @@ type Example struct {
 
 func TestCurd(t *testing.T) {
 	xconf := New(&Options{
-		Endpoints: []string{"test.riodev.oa.com:2379"},
+		Endpoints: []string{"127.0.0.1:2379"},
 		Username:  "",
 		Password:  "",
 	})
@@ -71,13 +71,13 @@ func TestCurd(t *testing.T) {
 
 func TestWatch(t *testing.T) {
 	client1 := New(&Options{
-		Endpoints: []string{"test.riodev.oa.com:2379"},
+		Endpoints: []string{"127.0.0.1:2379"},
 		Username:  "",
 		Password:  "",
 		ID:        "client1",
 	})
 	client2 := New(&Options{
-		Endpoints: []string{"test.riodev.oa.com:2379"},
+		Endpoints: []string{"127.0.0.1:2379"},
 		Username:  "",
 		Password:  "",
 		ID:        "client2",
@@ -106,14 +106,14 @@ func TestWatch(t *testing.T) {
 		return nil
 	})
 
-	// update with gray
+	// update with cancay
 	example := new(Example)
 	if err := json.Unmarshal(f.Content, example); err != nil {
 		t.Fatal(err)
 	}
 	example.Name = "Cake2"
 	f.Content, _ = json.Marshal(example)
-	f.Meta.Gray = "client2"
+	f.Meta.Canary = "client2"
 
 	client1.UpdateFile(context.TODO(), f)
 
@@ -123,7 +123,7 @@ func TestWatch(t *testing.T) {
 	}
 
 	// update all
-	f.Meta.Gray = ""
+	f.Meta.Canary = ""
 	client1.UpdateFile(context.TODO(), f)
 
 	newfile = <-ch

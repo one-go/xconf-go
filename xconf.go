@@ -34,7 +34,7 @@ type File struct {
 type Metadata struct {
 	CreateTime int64  `json:"createTime"`
 	UpdateTime int64  `json:"updateTime"`
-	Gray       string `json:"gray"`
+	Canary     string `json:"canary"`
 }
 
 type Xconf struct {
@@ -82,11 +82,27 @@ func New(opt *Options) *Xconf {
 
 type OnChange func(*File) error
 
-func (c *Xconf) GetConfig(ctx context.Context, group, name string) ([]byte, error) {
-	data, err := c.ReadCache(group, name)
-	if err == nil {
-		return data, err
+func (c *Xconf) GetConfig(ctx context.Context, group, name string) (data []byte, err error) {
+	defer func() {
+		if err != nil {
+			data, err = c.ReadCache(group, name)
+		}
+	}()
+
+	// check canary ?
+	res, err := c.client.Get(ctx, c.Meta(c.Key(group, name)))
+	if err != nil {
+		return nil, err
 	}
+	if res.Count > 0 {
+		meta := Metadata{}
+		if err := json.Unmarshal(res.Kvs[0].Value, &meta); err == nil {
+			if meta.Canary != "" && !c.CheckCanary(meta.Canary) {
+				return nil, errors.New("not in canary")
+			}
+		}
+	}
+
 	if data, _, err = c.Get(ctx, c.Key(group, name)); err != nil {
 		return nil, err
 	}
@@ -189,9 +205,9 @@ func (c *Xconf) Watch(ctx context.Context, group, name string, h OnChange) error
 					// TODO: error
 					continue
 				}
-				// check in gray list?
-				if meta.Gray != "" && !c.CheckGray(meta.Gray) {
-					// not in gray
+				// check in canary list?
+				if meta.Canary != "" && !c.CheckCanary(meta.Canary) {
+					// not in canary
 					continue
 				}
 				res, err := c.client.Get(ctx, keyName)
@@ -211,8 +227,8 @@ func (c *Xconf) Watch(ctx context.Context, group, name string, h OnChange) error
 	return nil
 }
 
-func (c *Xconf) CheckGray(gray string) bool {
-	return strings.Index(gray, c.id) != -1
+func (c *Xconf) CheckCanary(canary string) bool {
+	return strings.Index(canary, c.id) != -1
 }
 
 func SliceIndex(limit int, predicate func(i int) bool) int {
