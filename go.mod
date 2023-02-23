@@ -25,10 +25,7 @@ require (
 	github.com/xiang90/probing v0.0.0-20190116061207-43a291ad63a2 // indirect
 	go.etcd.io/bbolt v1.3.3 // indirect
 	go.uber.org/multierr v1.2.0 // indirect
-	golang.org/x/crypto v0.0.0-20190926180335-cea2066c6411 // indirect
-	golang.org/x/net v0.0.0-20190926025831-c00fd9afed17 // indirect
-	golang.org/x/sys v0.0.0-20190926180325-855e68c8590b // indirect
-	golang.org/x/text v0.3.2 // indirect
+	golang.org/x/text v0.3.8 // indirect
 	golang.org/x/time v0.0.0-20190921001708-c4c64cad1fd0 // indirect
 	google.golang.org/genproto v0.0.0-20190926190326-7ee9db18f195 // indirect
 	google.golang.org/grpc v1.24.0 // indirect
